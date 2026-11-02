@@ -56,7 +56,7 @@ const NearestNonRainyBeach = () => {
       setLocation(userLocation);
 
       const response = await fetch(
-        `http://localhost:5000/api/beaches/nearest-non-rainy?lat=${userLocation.lat}&lon=${userLocation.lon}`
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/beaches/nearest-non-rainy?lat=${userLocation.lat}&lon=${userLocation.lon}`
       );
       const data = await response.json();
 

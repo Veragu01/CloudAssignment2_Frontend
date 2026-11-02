@@ -49,7 +49,7 @@ const Home = () => {
         const userLocation = await getLocation();
         setLocation(userLocation);
 
-        const response = await fetch('http://localhost:5000/api/beaches');
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/beaches`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -88,7 +88,7 @@ const Home = () => {
         throw new Error('Beach not found');
       }
 
-      const response = await fetch(`http://localhost:5000/api/weather/${beach.id}`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/weather/${beach.id}`);
       const weatherData = await response.json();
 
       if (!response.ok) {
