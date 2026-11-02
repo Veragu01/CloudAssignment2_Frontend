@@ -2,9 +2,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import math
 import random
+import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+
+# Weather microservice configuration
+WEATHER_SERVICE_URL = os.getenv('WEATHER_SERVICE_URL', 'http://localhost:5001')
 
 # Sample NZ beach data with coordinates and simulated weather
 BEACHES = [
@@ -115,12 +123,31 @@ BEACHES = [
     }
 ]
 
-def get_simulated_weather(beach_id):
-    """Simulate weather data for a beach"""
+def get_weather_from_microservice(lat, lon):
+    """Get weather data from the weather microservice"""
+    try:
+        response = requests.get(
+            f"{WEATHER_SERVICE_URL}/api/weather",
+            params={'lat': lat, 'lon': lon},
+            timeout=5
+        )
+        response.raise_for_status()
+        weather_data = response.json()
+        
+        # Add simulated wave height (not provided by OpenMeteo)
+        weather_data['wave_height'] = round(random.uniform(0.5, 3.0), 1)
+        
+        return weather_data
+    except requests.RequestException as e:
+        # Fallback to simulated weather if microservice is unavailable
+        print(f"Warning: Weather microservice unavailable: {e}. Using simulated data.")
+        return get_simulated_weather_fallback(lat, lon)
+
+def get_simulated_weather_fallback(lat, lon):
+    """Fallback simulated weather data if microservice is unavailable"""
     weather_conditions = ["Sunny", "Cloudy", "Rainy", "Partly Cloudy", "Windy"]
     condition = random.choice(weather_conditions)
     
-    # Generate realistic temperature based on condition
     if condition == "Sunny":
         temp = random.randint(20, 28)
     elif condition == "Rainy":
@@ -129,12 +156,14 @@ def get_simulated_weather(beach_id):
         temp = random.randint(15, 24)
     
     return {
-        "beach_id": beach_id,
+        "latitude": lat,
+        "longitude": lon,
         "condition": condition,
         "temperature": temp,
         "wind_speed": random.randint(5, 30),
         "humidity": random.randint(40, 90),
-        "wave_height": round(random.uniform(0.5, 3.0), 1)
+        "wave_height": round(random.uniform(0.5, 3.0), 1),
+        "source": "Simulated (Fallback)"
     }
 
 def calculate_distance(lat1, lon1, lat2, lon2):
@@ -180,7 +209,7 @@ def search_beach():
     if matching_beaches:
         # Get weather for the first match
         beach = matching_beaches[0]
-        weather = get_simulated_weather(beach["id"])
+        weather = get_weather_from_microservice(beach["latitude"], beach["longitude"])
         return jsonify({
             "beach": beach,
             "weather": weather
@@ -202,7 +231,7 @@ def beaches_near_me():
     for beach in BEACHES:
         distance = calculate_distance(lat, lon, beach["latitude"], beach["longitude"])
         if distance <= radius:
-            weather = get_simulated_weather(beach["id"])
+            weather = get_weather_from_microservice(beach["latitude"], beach["longitude"])
             nearby_beaches.append({
                 **beach,
                 "distance": round(distance, 2),
@@ -229,7 +258,7 @@ def nearest_non_rainy():
     beaches_with_distance = []
     for beach in BEACHES:
         distance = calculate_distance(lat, lon, beach["latitude"], beach["longitude"])
-        weather = get_simulated_weather(beach["id"])
+        weather = get_weather_from_microservice(beach["latitude"], beach["longitude"])
         beaches_with_distance.append({
             **beach,
             "distance": round(distance, 2),
@@ -250,7 +279,7 @@ def get_weather(beach_id):
     """Get weather for a specific beach"""
     beach = next((b for b in BEACHES if b["id"] == beach_id), None)
     if beach:
-        weather = get_simulated_weather(beach_id)
+        weather = get_weather_from_microservice(beach["latitude"], beach["longitude"])
         return jsonify(weather)
     return jsonify({"error": "Beach not found"}), 404
 
