@@ -17,7 +17,7 @@ services:
 
   weather-service:
     build:
-      context: ./weather-service
+      context: ./Backend/weather-service
       dockerfile: Dockerfile
     container_name: beach-weather-service
     ports:
