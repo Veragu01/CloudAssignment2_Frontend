@@ -8,6 +8,25 @@ const CheckSpecificBeach = () => {
   const [error, setError] = useState(null);
   const [location, setLocation] = useState(null);
 
+  const getWeatherEmoji = (condition) => {
+    const conditionLower = condition?.toLowerCase() || '';
+    if (conditionLower.includes('sunny') || conditionLower.includes('clear')) return '☀️';
+    if (conditionLower.includes('cloud')) return '☁️';
+    if (conditionLower.includes('rain')) return '🌧️';
+    if (conditionLower.includes('partly')) return '⛅';
+    if (conditionLower.includes('wind')) return '💨';
+    if (conditionLower.includes('fog')) return '🌫️';
+    return '🌤️';
+  };
+
+  const getWeatherColor = (condition) => {
+    const conditionLower = condition?.toLowerCase() || '';
+    if (conditionLower.includes('sunny') || conditionLower.includes('clear')) return 'from-yellow-400 to-orange-400';
+    if (conditionLower.includes('rain')) return 'from-gray-400 to-blue-400';
+    if (conditionLower.includes('cloud')) return 'from-gray-300 to-gray-400';
+    return 'from-blue-400 to-cyan-400';
+  };
+
   const getLocation = () => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -104,31 +123,47 @@ const CheckSpecificBeach = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-blue-900 mb-8">Check Specific Beach</h1>
+    <div className="min-h-screen bg-gradient-to-br from-orange-400 via-pink-400 to-purple-500">
+      {/* Animated background elements */}
+      <div className="fixed top-20 left-20 text-6xl animate-bounce opacity-50">🏖️</div>
+      <div className="fixed top-40 right-32 text-5xl animate-pulse opacity-50">🌊</div>
+      <div className="fixed bottom-32 left-40 text-5xl animate-bounce opacity-50">🔍</div>
+      <div className="fixed bottom-40 right-20 text-6xl animate-pulse opacity-50">🌴</div>
+      <div className="fixed top-1/2 left-10 text-4xl animate-spin opacity-30" style={{ animationDuration: '10s' }}>🌈</div>
+
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold text-white drop-shadow-lg mb-4 animate-pulse">
+            🔍 Check Specific Beach
+          </h1>
+          <p className="text-xl text-white font-semibold drop-shadow-md">
+            Select a beach to check its weather conditions. Beaches are sorted by distance from your location.
+          </p>
+        </div>
         
-        <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl">
-          <p className="text-gray-600 mb-4">Select a beach to check its weather conditions. Beaches are sorted by distance from your location.</p>
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-4xl mx-auto">
           
           {location && (
-            <p className="text-gray-600 mb-4 text-sm">
-              <strong>Your location:</strong> {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
-            </p>
+            <div className="bg-blue-50 rounded-xl p-4 mb-6 border-2 border-blue-200">
+              <p className="text-blue-800">
+                <span className="text-2xl">📍</span> <strong>Your location:</strong> {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
+              </p>
+            </div>
           )}
           
           {loading && beaches.length === 0 ? (
-            <div className="text-center py-4">
-              <p className="text-gray-600">Loading beaches...</p>
+            <div className="text-center py-8">
+              <div className="text-6xl animate-spin mb-4">🔄</div>
+              <p className="text-gray-600 text-xl">Loading beaches...</p>
             </div>
           ) : (
             <>
-              <div className="mb-4">
-                <label className="block text-gray-700 font-semibold mb-2">Select Beach</label>
+              <div className="mb-6">
+                <label className="block text-gray-700 font-bold mb-3 text-lg">🏝️ Select Beach</label>
                 <select
                   value={selectedBeach}
                   onChange={(e) => setSelectedBeach(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-6 py-4 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-300 text-lg bg-white"
                 >
                   <option value="">-- Select a beach --</option>
                   {beaches.map(beach => (
@@ -142,31 +177,62 @@ const CheckSpecificBeach = () => {
               <button 
                 onClick={handleSearch}
                 disabled={loading || !selectedBeach}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                className="w-full bg-gradient-to-r from-orange-600 to-pink-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:from-orange-700 hover:to-pink-700 transition-all transform hover:scale-105 disabled:from-gray-400 disabled:to-gray-400 disabled:transform-none shadow-lg"
               >
-                {loading ? 'Loading...' : 'Check Weather'}
+                {loading ? '🔄 Loading...' : '🌊 Check Weather'}
               </button>
             </>
           )}
           
           {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <div className="mt-6 p-4 bg-red-100 border-2 border-red-300 rounded-xl text-red-700 flex items-center gap-3">
+              <span className="text-3xl">⚠️</span>
               {error}
             </div>
           )}
           
           {result && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h2 className="text-xl font-bold text-blue-900 mb-3">{result.beach.name}</h2>
-              <p className="text-gray-600 mb-2"><strong>Distance:</strong> {result.beach.distance.toFixed(1)} km</p>
-              <p className="text-gray-600 mb-2"><strong>Region:</strong> {result.beach.region}</p>
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">Weather Conditions</h3>
-                <p className="text-gray-700"><strong>Condition:</strong> {result.weather.condition}</p>
-                <p className="text-gray-700"><strong>Temperature:</strong> {result.weather.temperature}°C</p>
-                <p className="text-gray-700"><strong>Wind Speed:</strong> {result.weather.wind_speed} km/h</p>
-                <p className="text-gray-700"><strong>Humidity:</strong> {result.weather.humidity}%</p>
-                <p className="text-gray-700"><strong>Wave Height:</strong> {result.weather.wave_height}m</p>
+            <div className={`mt-8 p-6 rounded-2xl border-4 bg-gradient-to-br ${getWeatherColor(result.weather.condition)} shadow-2xl transform transition-all hover:scale-105`}>
+              <div className="text-center mb-6">
+                <span className="text-8xl animate-bounce">{getWeatherEmoji(result.weather.condition)}</span>
+                <h2 className="text-3xl font-bold text-white drop-shadow-lg mt-4">{result.beach.name}</h2>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-white/80 rounded-xl p-4 text-center">
+                  <p className="text-gray-600 text-sm">Distance</p>
+                  <p className="text-2xl font-bold text-blue-800">{result.beach.distance.toFixed(1)} km</p>
+                </div>
+                <div className="bg-white/80 rounded-xl p-4 text-center">
+                  <p className="text-gray-600 text-sm">Region</p>
+                  <p className="text-2xl font-bold text-blue-800">{result.beach.region}</p>
+                </div>
+              </div>
+              
+              <div className="bg-white/90 rounded-xl p-6">
+                <h3 className="text-2xl font-bold text-blue-800 mb-4 text-center">🌡️ Weather Conditions</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl">
+                    <p className="text-gray-600 text-sm">Condition</p>
+                    <p className="text-xl font-bold text-orange-800">{result.weather.condition}</p>
+                  </div>
+                  <div className="text-center p-3 bg-gradient-to-br from-red-100 to-pink-100 rounded-xl">
+                    <p className="text-gray-600 text-sm">Temperature</p>
+                    <p className="text-xl font-bold text-red-800">{result.weather.temperature}°C</p>
+                  </div>
+                  <div className="text-center p-3 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl">
+                    <p className="text-gray-600 text-sm">Wind Speed</p>
+                    <p className="text-xl font-bold text-blue-800">{result.weather.wind_speed} km/h</p>
+                  </div>
+                  <div className="text-center p-3 bg-gradient-to-br from-green-100 to-teal-100 rounded-xl">
+                    <p className="text-gray-600 text-sm">Humidity</p>
+                    <p className="text-xl font-bold text-green-800">{result.weather.humidity}%</p>
+                  </div>
+                  <div className="text-center p-3 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl col-span-2">
+                    <p className="text-gray-600 text-sm">Wave Height</p>
+                    <p className="text-xl font-bold text-purple-800">{result.weather.wave_height}m</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
