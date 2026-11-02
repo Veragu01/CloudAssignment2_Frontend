@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: beach-weather-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - WEATHER_SERVICE_URL=http://weather-service:5001
+    networks:
+      - beach-network
+    restart: unless-stopped
+
+  weather-service:
+    build:
+      context: ./weather-service
+      dockerfile: Dockerfile
+    container_name: beach-weather-service
+    ports:
+      - "5001:5001"
+    environment:
+      - OPENMETEO_API_TOKEN=${OPENMETEO_API_TOKEN}
+      - PORT=5001
+    networks:
+      - beach-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: beach-weather-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - beach-network
+    restart: unless-stopped
+
+networks:
+  beach-network:
+    driver: bridge
