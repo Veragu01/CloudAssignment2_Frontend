@@ -52,7 +52,7 @@ docker run -p 5000:5000 beach-weather-backend
 
 #### Weather Microservice
 ```bash
-cd weather-service
+cd Backend/weather-service
 docker build -t beach-weather-service .
 docker run -p 5001:5001 -e OPENMETEO_API_TOKEN=your_token beach-weather-service
 ```
@@ -112,7 +112,7 @@ python app.py
 
 2. **Weather Microservice**:
 ```bash
-cd weather-service
+cd Backend/weather-service
 pip install -r requirements.txt
 python app.py
 ```

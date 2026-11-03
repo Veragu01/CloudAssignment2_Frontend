@@ -57,7 +57,7 @@ const BeachesNearMe = () => {
       setLocation(userLocation);
 
       const response = await fetch(
-        `http://localhost:5000/api/beaches/near?lat=${userLocation.lat}&lon=${userLocation.lon}&radius=${radius}`
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/beaches/near?lat=${userLocation.lat}&lon=${userLocation.lon}&radius=${radius}`
       );
       const data = await response.json();
 
